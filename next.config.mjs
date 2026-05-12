@@ -10,6 +10,7 @@ const config = {
     serverActions: {
       allowedOrigins: [
         'localhost:3000',
+        'www.xmjt.fun',
         // newapi.pro domains
         'docs.newapi.pro',
         'newapi.pro',
@@ -27,7 +28,7 @@ const config = {
     return [
       {
         // Apply charset to HTML pages
-        source: '/:lang(en|zh|ja)/:path*',
+        source: '/:lang(zh)/:path*',
         headers: [
           {
             key: 'Content-Type',

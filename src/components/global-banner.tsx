@@ -15,21 +15,21 @@ const BANNER_CONFIG = {
   variant: 'rainbow' as const,
 
   // Link URL
-  linkUrl: 'https://doc.newapi.pro',
+  linkUrl: 'https://www.xmjt.fun',
 
   // Multi-language text configuration
   text: {
     en: {
       message: 'Documentation renewed! For old docs, visit',
-      linkText: 'doc.newapi.pro',
+      linkText: 'www.xmjt.fun',
     },
     zh: {
       message: '文档焕新，旧文档请访问',
-      linkText: 'doc.newapi.pro',
+      linkText: 'www.xmjt.fun',
     },
     ja: {
       message: 'ドキュメントが一新されました！旧ドキュメントは',
-      linkText: 'doc.newapi.pro',
+      linkText: 'www.xmjt.fun',
     },
   } as Record<string, { message: string; linkText: string }>,
 };

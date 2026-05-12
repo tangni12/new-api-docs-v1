@@ -9,21 +9,14 @@ import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/mdx-components';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import { Feedback } from '@/components/feedback';
-import { LLMCopyButton, ViewOptions } from '@/components/page-actions';
-import { onRateAction } from '@/lib/github';
-
-// GitHub repository info for source links
-const owner = 'QuantumNous';
-const repo = 'new-api-docs-v1';
-const branch = 'main';
 
 export default async function Page(props: {
-  params: Promise<{ lang: string; slug?: string[] }>;
+	params: Promise<{ lang: string; slug?: string[] }>;
 }) {
-  const { slug, lang } = await props.params;
-  const page = source.getPage(slug, lang);
-  if (!page) notFound();
+	const { slug, lang } = await props.params;
+	if (isHiddenPage(slug)) notFound();
+	const page = source.getPage(slug, lang);
+	if (!page) notFound();
 
   const MDX = page.data.body as any;
   const lastModified = page.data.lastModified;
@@ -43,17 +36,6 @@ export default async function Page(props: {
       <DocsDescription className="mb-2">
         {page.data.description}
       </DocsDescription>
-      <div className="mb-6 flex flex-row flex-wrap items-center gap-2 border-b pb-6">
-        <LLMCopyButton
-          markdownUrl={`/${lang}/llms.mdx/${page.slugs.join('/')}`}
-          lang={lang}
-        />
-        <ViewOptions
-          markdownUrl={`/${lang}/llms.mdx/${page.slugs.join('/')}`}
-          githubUrl={`https://github.com/${owner}/${repo}/blob/${branch}/content/docs/${page.path}`}
-          lang={lang}
-        />
-      </div>
       <DocsBody>
         <MDX
           components={getMDXComponents({
@@ -61,25 +43,31 @@ export default async function Page(props: {
           })}
         />
       </DocsBody>
-      <Feedback lang={lang} onRateAction={onRateAction} />
     </DocsPage>
   );
 }
 
 export async function generateStaticParams() {
-  return source.generateParams();
+	return source
+		.generateParams()
+		.filter((item) => !isHiddenPage(item.slug));
 }
 
 export async function generateMetadata(props: {
   params: Promise<{ lang: string; slug?: string[] }>;
 }): Promise<Metadata> {
-  const { slug, lang } = await props.params;
-  const page = source.getPage(slug, lang);
-  if (!page) notFound();
+	const { slug, lang } = await props.params;
+	if (isHiddenPage(slug)) notFound();
+	const page = source.getPage(slug, lang);
+	if (!page) notFound();
 
   return {
     title: page.data.title,
     description: page.data.description,
-    openGraph: { images: getPageImage(page).url },
-  };
+		openGraph: { images: getPageImage(page).url },
+	};
+}
+
+function isHiddenPage(slug?: string[]) {
+	return slug?.[0] === 'api' && slug?.[1] === 'management';
 }

@@ -2,6 +2,12 @@ import { createOpenAPI } from 'fumadocs-openapi/server';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+const apiBaseUrl = normalizeBaseUrl(
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.API_BASE_URL ||
+    'https://www.xmjt.fun'
+);
+
 async function walkJsonFiles(dir: string): Promise<string[]> {
   const out: string[] = [];
   async function walk(current: string) {
@@ -39,9 +45,27 @@ export const openapi = createOpenAPI({
     const entries = await Promise.all(
       files.map(async (p) => {
         const raw = await readFile(p, 'utf8');
-        return [p, JSON.parse(raw)] as const;
+        return [p, withConfiguredServer(JSON.parse(raw))] as const;
       })
     );
     return Object.fromEntries(entries);
   },
 });
+
+function normalizeBaseUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return 'https://www.xmjt.fun';
+  return trimmed.replace(/\/+$/, '');
+}
+
+function withConfiguredServer(document: any) {
+  return {
+    ...document,
+    servers: [
+      {
+        url: apiBaseUrl,
+        description: 'Nmg API 服务地址',
+      },
+    ],
+  };
+}

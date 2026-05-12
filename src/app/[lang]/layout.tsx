@@ -8,9 +8,6 @@ import { notFound } from 'next/navigation';
 
 const { provider } = defineI18nUI(i18n, {
   translations: {
-    en: {
-      displayName: 'English',
-    },
     zh: {
       displayName: '简体中文',
       search: '搜索文档',
@@ -23,94 +20,42 @@ const { provider } = defineI18nUI(i18n, {
       previousPage: '上一页',
       tocNoHeadings: '目录为空',
     },
-    ja: {
-      displayName: '日本語',
-      search: 'ドキュメントを検索',
-      searchNoResult: '結果が見つかりません',
-      toc: '目次',
-      lastUpdate: '最終更新',
-      chooseTheme: 'テーマを選択',
-      chooseLanguage: '言語を選択',
-      nextPage: '次のページ',
-      previousPage: '前のページ',
-      tocNoHeadings: '見出しがありません',
-    },
   },
 });
 
-const titleMap: Record<
-  string,
-  { default: string; template: string; description: string }
-> = {
-  en: {
-    default: 'New API - The Foundation of Your AI Universe',
-    template: '%s | New API',
-    description:
-      'Connect all AI providers, manage your AI assets, and build the future on a unified infrastructure platform. Deploy in minutes, scale effortlessly.',
-  },
-  zh: {
-    default: 'New API - AI 基座',
-    template: '%s | New API',
-    description:
-      '承载所有 AI 应用，管理你的数字资产，连接未来的统一基础设施平台。快速部署，轻松扩展。',
-  },
-  ja: {
-    default: 'New API - あなたの AI ユニバースの基盤',
-    template: '%s | New API',
-    description:
-      'すべての AI プロバイダーを接続し、AI アセットを管理し、統一されたインフラストラクチャプラットフォームで未来を構築。数分でデプロイ、簡単にスケール。',
-  },
-};
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ lang: string }>;
-}): Promise<Metadata> {
-  const lang = (await params).lang;
-  const titles = titleMap[lang] || titleMap.en;
-
+export async function generateMetadata(): Promise<Metadata> {
   return createMetadata({
     metadataBase: baseUrl,
     title: {
-      default: titles.default,
-      template: titles.template,
+      default: 'Nmg API - AI 模型接口文档',
+      template: '%s | Nmg API',
     },
-    description: titles.description,
+    description: 'Nmg API 使用指南与 AI 模型接口参考文档。',
     keywords: [
-      'AI Infrastructure',
-      'AI Gateway',
-      'AI Asset Management',
-      'API Orchestration',
-      'AI Application Platform',
-      'Multi-Model Integration',
-      'Enterprise AI',
-      'AI Ecosystem',
-      'Unified AI Interface',
-      'Intelligent API Management',
+      'Nmg API',
+      'AI API',
+      'AI 模型接口',
+      'OpenAI Compatible API',
+      'API 文档',
     ],
-    authors: [
-      { name: 'New API Team', url: 'https://github.com/QuantumNous/new-api' },
-    ],
-    creator: 'New API Team',
+    authors: [{ name: 'Nmg API', url: 'https://www.xmjt.fun' }],
+    creator: 'Nmg API',
     alternates: {
       languages: {
-        en: '/en',
         zh: '/zh',
-        ja: '/ja',
       },
     },
     openGraph: {
       type: 'website',
-      locale: lang,
-      title: titles.default,
-      description: titles.description,
-      siteName: 'New API',
+      locale: 'zh_CN',
+      title: 'Nmg API - AI 模型接口文档',
+      description: 'Nmg API 使用指南与 AI 模型接口参考文档。',
+      siteName: 'Nmg API',
     },
     twitter: {
       card: 'summary_large_image',
-      title: titles.default,
-      description: titles.description,
+      title: 'Nmg API - AI 模型接口文档',
+      description: 'Nmg API 使用指南与 AI 模型接口参考文档。',
     },
   });
 }
@@ -128,7 +73,6 @@ export default async function RootLayout({
 }) {
   const lang = (await params).lang;
 
-  // Check if the language is valid, prevent invalid language codes (e.g. 'api') from causing errors
   if (!i18n.languages.includes(lang as (typeof i18n.languages)[number])) {
     notFound();
   }
