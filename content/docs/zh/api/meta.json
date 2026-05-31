@@ -1,6 +1,6 @@
 {
   "title": "API 参考",
-  "description": "Nmg API 接口文档",
+  "description": "ApiFlow 接口文档",
   "icon": "Code",
   "root": true,
   "pages": ["index", "ai-model"]

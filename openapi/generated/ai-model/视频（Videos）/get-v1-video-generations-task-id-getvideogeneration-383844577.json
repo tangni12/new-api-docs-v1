@@ -3,7 +3,7 @@
   "info": {
     "title": "获取视频生成任务状态",
     "version": "1.0.0",
-    "description": "查询视频生成任务的状态和结果。\n\n任务状态：\n- `queued`: 排队中\n- `in_progress`: 生成中\n- `completed`: 已完成\n- `failed`: 失败\n"
+    "description": "查询 /v1/video/generations 创建的视频任务状态和结果。该旧版通用查询接口返回 NewAPI TaskResponse 包装结构。"
   },
   "tags": [
     {
@@ -15,7 +15,281 @@
       "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "使用 Bearer Token 认证。\n格式: `Authorization: Bearer sk-xxxxxx`\n"
+        "description": "使用 Bearer Token 认证。\n格式: `Authorization: Bearer sk-xxxxxx`"
+      }
+    },
+    "schemas": {
+      "TaskResponse": {
+        "type": "object",
+        "description": "NewAPI 任务查询响应包装结构",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "响应代码，成功时为 success",
+            "examples": [
+              "success"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "examples": [
+              ""
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskDto"
+              },
+              {
+                "$ref": "#/components/schemas/SimpleVideoTaskData"
+              }
+            ]
+          }
+        },
+        "x-apifox-orders": [
+          "code",
+          "message",
+          "data"
+        ]
+      },
+      "TaskDto": {
+        "type": "object",
+        "description": "通用视频任务数据，对应 NewAPI 源码 relay.TaskModel2Dto 返回的 dto.TaskDto。大多数渠道在 GET /v1/video/generations/{task_id} 下返回该结构。",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "任务数据库 ID",
+            "examples": [
+              45
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "创建时间，Unix 时间戳",
+            "examples": [
+              1779781958
+            ]
+          },
+          "updated_at": {
+            "type": "integer",
+            "description": "更新时间，Unix 时间戳",
+            "examples": [
+              1779782022
+            ]
+          },
+          "task_id": {
+            "type": "string",
+            "description": "公开任务 ID",
+            "examples": [
+              "task_abc123"
+            ]
+          },
+          "platform": {
+            "type": "string",
+            "description": "任务平台/渠道类型",
+            "examples": [
+              "59"
+            ]
+          },
+          "user_id": {
+            "type": "integer",
+            "description": "用户 ID"
+          },
+          "group": {
+            "type": "string",
+            "description": "请求使用的分组",
+            "examples": [
+              "default"
+            ]
+          },
+          "channel_id": {
+            "type": "integer",
+            "description": "渠道 ID"
+          },
+          "quota": {
+            "type": "integer",
+            "description": "预扣或实际任务额度"
+          },
+          "action": {
+            "type": "string",
+            "description": "任务动作，例如 textGenerate、generate、firstTailGenerate",
+            "examples": [
+              "textGenerate"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "任务状态。TaskDto 使用 NewAPI 内部任务状态，例如 NOT_START、SUBMITTED、QUEUED、IN_PROGRESS、SUCCESS、FAILURE、UNKNOWN。",
+            "examples": [
+              "SUCCESS"
+            ]
+          },
+          "fail_reason": {
+            "type": "string",
+            "description": "失败原因"
+          },
+          "result_url": {
+            "type": "string",
+            "description": "任务结果视频 URL",
+            "examples": [
+              "https://example.com/video.mp4"
+            ]
+          },
+          "submit_time": {
+            "type": "integer",
+            "description": "提交时间，Unix 时间戳"
+          },
+          "start_time": {
+            "type": "integer",
+            "description": "开始处理时间，Unix 时间戳"
+          },
+          "finish_time": {
+            "type": "integer",
+            "description": "完成时间，Unix 时间戳"
+          },
+          "progress": {
+            "type": "string",
+            "description": "任务进度",
+            "examples": [
+              "100%"
+            ]
+          },
+          "properties": {
+            "type": "object",
+            "description": "任务属性，例如原始模型、上游模型、输入快照等",
+            "additionalProperties": true
+          },
+          "data": {
+            "type": [
+              "object",
+              "array",
+              "string",
+              "null"
+            ],
+            "description": "上游任务原始响应数据"
+          }
+        },
+        "x-apifox-orders": [
+          "id",
+          "created_at",
+          "updated_at",
+          "task_id",
+          "platform",
+          "user_id",
+          "group",
+          "channel_id",
+          "quota",
+          "action",
+          "status",
+          "fail_reason",
+          "result_url",
+          "submit_time",
+          "start_time",
+          "finish_time",
+          "progress",
+          "properties",
+          "data"
+        ]
+      },
+      "SimpleVideoTaskData": {
+        "type": "object",
+        "description": "实时简化视频任务数据。源码 tryRealtimeFetch 在非 /v1/videos/{task_id} 的旧查询路径下，对 Gemini/Vertex 等支持实时拉取的渠道可能返回该结构。",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "公开任务 ID",
+            "examples": [
+              "task_abc123"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "简化状态，由内部任务状态映射而来：queued、processing、succeeded、failed。",
+            "enum": [
+              "queued",
+              "processing",
+              "succeeded",
+              "failed"
+            ],
+            "examples": [
+              "succeeded"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "视频结果 URL",
+            "examples": [
+              "https://example.com/video.mp4"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "description": "视频格式",
+            "examples": [
+              "mp4"
+            ]
+          },
+          "metadata": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "元数据",
+            "additionalProperties": true
+          },
+          "error": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "错误信息",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "错误代码"
+              },
+              "message": {
+                "type": "string",
+                "description": "错误信息"
+              }
+            },
+            "x-apifox-orders": [
+              "code",
+              "message"
+            ]
+          }
+        },
+        "x-apifox-orders": [
+          "task_id",
+          "status",
+          "url",
+          "format",
+          "metadata",
+          "error"
+        ]
+      },
+      "TaskError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "错误代码"
+          },
+          "message": {
+            "type": "string",
+            "description": "错误信息"
+          },
+          "data": {
+            "description": "错误数据"
+          }
+        },
+        "x-apifox-orders": [
+          "code",
+          "message",
+          "data"
+        ]
       }
     }
   },
@@ -26,17 +300,18 @@
           "视频（Videos）"
         ],
         "summary": "获取视频生成任务状态",
-        "description": "查询视频生成任务的状态和结果。\n\n任务状态：\n- `queued`: 排队中\n- `in_progress`: 生成中\n- `completed`: 已完成\n- `failed`: 失败\n",
+        "description": "根据公开 task_id 查询视频生成任务状态和结果。该接口返回 NewAPI TaskResponse 包装结构，结果数据位于 data 字段。",
         "operationId": "getvideogeneration",
         "parameters": [
           {
             "name": "task_id",
             "in": "path",
             "required": true,
-            "description": "任务 ID",
+            "description": "公开任务 ID，创建任务响应中的 id/task_id",
             "schema": {
               "type": "string"
-            }
+            },
+            "example": "task_abc123"
           }
         ],
         "security": [
@@ -50,166 +325,94 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "description": "视频任务状态查询响应",
-                  "properties": {
-                    "task_id": {
-                      "type": "string",
-                      "description": "任务 ID",
-                      "examples": [
-                        "abcd1234efgh"
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "description": "任务状态",
-                      "enum": [
-                        "queued",
-                        "in_progress",
-                        "completed",
-                        "failed"
-                      ],
-                      "examples": [
-                        "completed"
-                      ]
-                    },
-                    "url": {
-                      "type": "string",
-                      "description": "视频资源 URL（成功时）",
-                      "examples": [
-                        "https://example.com/video.mp4"
-                      ]
-                    },
-                    "format": {
-                      "type": "string",
-                      "description": "视频格式",
-                      "examples": [
-                        "mp4"
-                      ]
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "description": "视频任务元数据",
-                      "properties": {
-                        "duration": {
-                          "type": "number",
-                          "description": "实际生成的视频时长",
-                          "examples": [
-                            5
-                          ]
+                  "$ref": "#/components/schemas/TaskResponse"
+                },
+                "examples": {
+                  "task_dto": {
+                    "summary": "完整任务结构",
+                    "value": {
+                      "code": "success",
+                      "message": "",
+                      "data": {
+                        "id": 45,
+                        "created_at": 1779781958,
+                        "updated_at": 1779782022,
+                        "task_id": "task_abc123",
+                        "platform": "59",
+                        "user_id": 1,
+                        "group": "default",
+                        "channel_id": 7,
+                        "quota": 1200000,
+                        "action": "textGenerate",
+                        "status": "SUCCESS",
+                        "fail_reason": "",
+                        "result_url": "https://example.com/video.mp4",
+                        "submit_time": 1779781958,
+                        "start_time": 1779781989,
+                        "finish_time": 1779782022,
+                        "progress": "100%",
+                        "properties": {
+                          "origin_model_name": "veo-3.1-fast-generate-001",
+                          "upstream_model_name": "veo-3.1-fast-generate-001"
                         },
-                        "fps": {
-                          "type": "integer",
-                          "description": "实际帧率",
-                          "examples": [
-                            30
-                          ]
-                        },
-                        "width": {
-                          "type": "integer",
-                          "description": "实际宽度",
-                          "examples": [
-                            1280
-                          ]
-                        },
-                        "height": {
-                          "type": "integer",
-                          "description": "实际高度",
-                          "examples": [
-                            720
-                          ]
-                        },
-                        "seed": {
-                          "type": "integer",
-                          "description": "使用的随机种子",
-                          "examples": [
-                            20231234
-                          ]
-                        }
-                      },
-                      "x-apifox-orders": [
-                        "duration",
-                        "fps",
-                        "width",
-                        "height",
-                        "seed"
-                      ]
-                    },
-                    "error": {
-                      "type": "object",
-                      "description": "视频任务错误信息",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "description": "错误码"
-                        },
-                        "message": {
-                          "type": "string",
-                          "description": "错误信息"
-                        }
-                      },
-                      "x-apifox-orders": [
-                        "code",
-                        "message"
-                      ]
+                        "data": {}
+                      }
                     }
                   },
-                  "x-apifox-orders": [
-                    "task_id",
-                    "status",
-                    "url",
-                    "format",
-                    "metadata",
-                    "error"
-                  ]
+                  "simple_realtime": {
+                    "summary": "实时简化结构",
+                    "value": {
+                      "code": "success",
+                      "message": "",
+                      "data": {
+                        "task_id": "task_abc123",
+                        "status": "succeeded",
+                        "url": "https://example.com/video.mp4",
+                        "format": "mp4",
+                        "metadata": null,
+                        "error": null
+                      }
+                    }
+                  }
                 }
               }
             }
           },
-          "404": {
-            "description": "任务不存在",
+          "400": {
+            "description": "任务不存在或请求参数错误",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "description": "错误信息"
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "错误类型"
-                        },
-                        "param": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "相关参数"
-                        },
-                        "code": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "错误代码"
-                        }
-                      },
-                      "x-apifox-orders": [
-                        "message",
-                        "type",
-                        "param",
-                        "code"
-                      ]
+                  "$ref": "#/components/schemas/TaskError"
+                },
+                "examples": {
+                  "task_not_exist": {
+                    "value": {
+                      "code": "task_not_exist",
+                      "message": "task_not_exist",
+                      "data": null
                     }
-                  },
-                  "x-apifox-orders": [
-                    "error"
-                  ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskError"
                 }
               }
             }

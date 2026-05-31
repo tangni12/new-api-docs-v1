@@ -1,11 +1,11 @@
-import { createOpenAPI } from 'fumadocs-openapi/server';
+﻿import { createOpenAPI } from 'fumadocs-openapi/server';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const apiBaseUrl = normalizeBaseUrl(
   process.env.NEXT_PUBLIC_API_BASE_URL ||
     process.env.API_BASE_URL ||
-    'https://www.xmjt.fun'
+    'https://api.apiflow-ai.com'
 );
 
 async function walkJsonFiles(dir: string): Promise<string[]> {
@@ -54,7 +54,7 @@ export const openapi = createOpenAPI({
 
 function normalizeBaseUrl(value: string) {
   const trimmed = value.trim();
-  if (!trimmed) return 'https://www.xmjt.fun';
+  if (!trimmed) return 'https://api.apiflow-ai.com';
   return trimmed.replace(/\/+$/, '');
 }
 
@@ -64,7 +64,7 @@ function withConfiguredServer(document: any) {
     servers: [
       {
         url: apiBaseUrl,
-        description: 'Nmg API 服务地址',
+        description: 'ApiFlow 服务地址',
       },
     ],
   };

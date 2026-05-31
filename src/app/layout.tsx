@@ -3,7 +3,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import './global.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.xmjt.fun'),
+  metadataBase: new URL('https://api.apiflow-ai.com'),
   other: {
     charset: 'utf-8',
   },

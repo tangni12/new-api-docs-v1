@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { withBasePath } from '@/lib/base-path';
 
 interface QuizProps {
   locale?: 'en' | 'zh' | 'ja';
@@ -325,7 +326,7 @@ export function QQGroupQuiz({ locale = 'en' }: QuizProps) {
 
         <h3>{t.methodOne}</h3>
         <img
-          src="/assets/qq_5.jpg"
+          src={withBasePath('/assets/qq_5.jpg')}
           alt="QQ Group QR Code"
           style={{
             maxWidth: '300px',

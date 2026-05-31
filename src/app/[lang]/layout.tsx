@@ -1,4 +1,4 @@
-import { defineI18nUI } from 'fumadocs-ui/i18n';
+﻿import { defineI18nUI } from 'fumadocs-ui/i18n';
 import { i18n } from '@/lib/i18n';
 import { Provider } from '@/components/provider';
 import '../global.css';
@@ -27,19 +27,19 @@ export async function generateMetadata(): Promise<Metadata> {
   return createMetadata({
     metadataBase: baseUrl,
     title: {
-      default: 'Nmg API - AI 模型接口文档',
-      template: '%s | Nmg API',
+      default: 'ApiFlow - AI 模型接口文档',
+      template: '%s | ApiFlow',
     },
-    description: 'Nmg API 使用指南与 AI 模型接口参考文档。',
+    description: 'ApiFlow 使用指南与 AI 模型接口参考文档。',
     keywords: [
-      'Nmg API',
+      'ApiFlow',
       'AI API',
       'AI 模型接口',
       'OpenAI Compatible API',
       'API 文档',
     ],
-    authors: [{ name: 'Nmg API', url: 'https://www.xmjt.fun' }],
-    creator: 'Nmg API',
+    authors: [{ name: 'ApiFlow', url: 'https://api.apiflow-ai.com' }],
+    creator: 'ApiFlow',
     alternates: {
       languages: {
         zh: '/zh',
@@ -48,14 +48,14 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: 'website',
       locale: 'zh_CN',
-      title: 'Nmg API - AI 模型接口文档',
-      description: 'Nmg API 使用指南与 AI 模型接口参考文档。',
-      siteName: 'Nmg API',
+      title: 'ApiFlow - AI 模型接口文档',
+      description: 'ApiFlow 使用指南与 AI 模型接口参考文档。',
+      siteName: 'ApiFlow',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nmg API - AI 模型接口文档',
-      description: 'Nmg API 使用指南与 AI 模型接口参考文档。',
+      title: 'ApiFlow - AI 模型接口文档',
+      description: 'ApiFlow 使用指南与 AI 模型接口参考文档。',
     },
   });
 }

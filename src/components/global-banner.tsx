@@ -15,7 +15,7 @@ const BANNER_CONFIG = {
   variant: 'rainbow' as const,
 
   // Link URL
-  linkUrl: 'https://www.xmjt.fun',
+  linkUrl: 'https://api.apiflow-ai.com',
 
   // Multi-language text configuration
   text: {

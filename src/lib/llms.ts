@@ -38,9 +38,9 @@ export function generateLLMsText(
     .sort((a, b) => a.docsUrl.localeCompare(b.docsUrl));
 
   const lines = [
-    `# Nmg API Docs (${lang})`,
+    `# ApiFlow Docs (${lang})`,
     '',
-    '> LLM-friendly index for Nmg API documentation.',
+    '> LLM-friendly index for ApiFlow documentation.',
     '',
     '## Preferred Sources',
     `- [Full Documentation](${toAbsoluteUrl(origin, `/${lang}/llms-full.txt`)}): Full corpus in one file.`,

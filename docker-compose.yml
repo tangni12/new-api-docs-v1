@@ -1,0 +1,17 @@
+services:
+  apiflow-docs:
+    image: apiflow-docs:v1
+    container_name: apiflow-docs
+    restart: always
+    ports:
+      - "3018:3000"
+    environment:
+      # 文档接口示例和 Send 请求默认指向的 API 服务地址。
+      # 如果以后 API 域名变化，只改这里即可。
+      API_BASE_URL: "https://api.apiflow-ai.com"
+      NEXT_PUBLIC_API_BASE_URL: "https://api.apiflow-ai.com"
+      # 文档站挂载路径。独立域名部署时可以改成空字符串并重新构建镜像。
+      NEXT_PUBLIC_BASE_PATH: "/docs"
+      NODE_ENV: "production"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"

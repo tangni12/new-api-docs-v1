@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import { cn } from '@/lib/cn';
+import { withBasePath } from '@/lib/base-path';
 
 const GrainGradient = dynamic(
   () => import('@paper-design/shaders-react').then((m) => m.GrainGradient),
@@ -186,7 +187,7 @@ export function Hero() {
           )}
         >
           <Image
-            src="/assets/newapi.svg"
+            src={withBasePath('/assets/newapi.svg')}
             alt="logo"
             width={288}
             height={288}
@@ -201,8 +202,8 @@ export function Hero() {
         <Image
           src={
             resolvedTheme === 'dark'
-              ? '/assets/dashboard-dark.png'
-              : '/assets/dashboard-light.png'
+              ? withBasePath('/assets/dashboard-dark.png')
+              : withBasePath('/assets/dashboard-light.png')
           }
           alt="dashboard-preview"
           width={1200}

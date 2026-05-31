@@ -3,7 +3,7 @@
   "info": {
     "title": "创建视频生成任务",
     "version": "1.0.0",
-    "description": "提交视频生成任务，支持文生视频和图生视频。\n\n返回任务 ID，可通过 GET 接口查询任务状态。\n"
+    "description": "提交视频生成任务，支持文生视频和图生视频。该接口使用 NewAPI 通用视频任务格式，返回公开任务 ID，可通过 GET /v1/video/generations/{task_id} 查询任务状态。"
   },
   "tags": [
     {
@@ -15,7 +15,243 @@
       "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "使用 Bearer Token 认证。\n格式: `Authorization: Bearer sk-xxxxxx`\n"
+        "description": "使用 Bearer Token 认证。\n格式: `Authorization: Bearer sk-xxxxxx`"
+      }
+    },
+    "schemas": {
+      "VideoGenerationRequest": {
+        "type": "object",
+        "description": "视频生成请求。未列出的厂商扩展参数建议放入 metadata。",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "模型/风格 ID",
+            "examples": [
+              "veo-3.1-fast-generate-001"
+            ]
+          },
+          "prompt": {
+            "type": "string",
+            "description": "文本描述提示词",
+            "examples": [
+              "A cinematic 4-second video of a cute cat walking slowly on a sunny balcony."
+            ]
+          },
+          "image": {
+            "type": "string",
+            "description": "图片输入，支持 URL、Base64 或 data URL。传入该字段时通常按图生视频处理。",
+            "examples": [
+              "data:image/png;base64,{base64}"
+            ]
+          },
+          "duration": {
+            "type": "number",
+            "description": "视频时长，单位秒",
+            "examples": [
+              4
+            ]
+          },
+          "size": {
+            "type": "string",
+            "description": "视频尺寸或分辨率。不同渠道支持的取值可能不同，例如 720p、1080p、4k、1280x720。",
+            "examples": [
+              "720p"
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "description": "扩展参数，会由对应渠道适配器读取或透传。可用于传递厂商原生参数，例如 parameters、instances、aspectRatio、generateAudio 等。",
+            "additionalProperties": true,
+            "examples": [
+              {
+                "parameters": {
+                  "aspectRatio": "16:9",
+                  "generateAudio": true
+                }
+              }
+            ]
+          }
+        },
+        "x-apifox-orders": [
+          "model",
+          "prompt",
+          "image",
+          "duration",
+          "size",
+          "metadata"
+        ]
+      },
+      "OpenAIVideo": {
+        "type": "object",
+        "description": "视频任务提交响应，对应 NewAPI 源码中的 dto.OpenAIVideo。创建任务成功时一般返回 queued 状态；带 omitempty 的字段只有在对应渠道或任务阶段存在值时才会出现。",
+        "required": [
+          "id",
+          "object",
+          "model",
+          "status",
+          "progress",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "公开任务 ID",
+            "examples": [
+              "task_abc123"
+            ]
+          },
+          "task_id": {
+            "type": "string",
+            "description": "兼容旧接口的公开任务 ID。当前多数视频适配器会同时返回 id 和 task_id。",
+            "examples": [
+              "task_abc123"
+            ]
+          },
+          "object": {
+            "type": "string",
+            "description": "对象类型",
+            "examples": [
+              "video"
+            ]
+          },
+          "model": {
+            "type": "string",
+            "description": "请求并计费模型",
+            "examples": [
+              "veo-3.1-fast-generate-001"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "任务状态",
+            "enum": [
+              "queued",
+              "in_progress",
+              "completed",
+              "failed"
+            ],
+            "examples": [
+              "queued"
+            ]
+          },
+          "progress": {
+            "type": "integer",
+            "description": "任务进度，0-100",
+            "examples": [
+              0
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "创建时间，Unix 时间戳",
+            "examples": [
+              1779781958
+            ]
+          },
+          "completed_at": {
+            "type": "integer",
+            "description": "完成时间，Unix 时间戳。创建任务刚提交时通常不返回。",
+            "examples": [
+              1779782022
+            ]
+          },
+          "expires_at": {
+            "type": "integer",
+            "description": "资源过期时间，Unix 时间戳。当前仅部分 OpenAI Video/Sora 格式任务可能返回。"
+          },
+          "seconds": {
+            "type": "string",
+            "description": "视频时长。当前仅部分 OpenAI Video/Sora 格式任务可能返回。"
+          },
+          "size": {
+            "type": "string",
+            "description": "视频尺寸或分辨率。当前仅部分 OpenAI Video/Sora 格式任务可能返回。"
+          },
+          "remixed_from_video_id": {
+            "type": "string",
+            "description": "Remix 来源视频 ID。当前仅 Remix 类任务可能返回。"
+          },
+          "error": {
+            "type": "object",
+            "description": "失败时的错误信息",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "错误信息"
+              },
+              "code": {
+                "type": "string",
+                "description": "错误代码"
+              }
+            },
+            "x-apifox-orders": [
+              "message",
+              "code"
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "description": "任务元数据",
+            "additionalProperties": true
+          }
+        },
+        "x-apifox-orders": [
+          "id",
+          "task_id",
+          "object",
+          "model",
+          "status",
+          "progress",
+          "created_at",
+          "completed_at",
+          "expires_at",
+          "seconds",
+          "size",
+          "remixed_from_video_id",
+          "error",
+          "metadata"
+        ]
+      },
+      "OpenAIError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "错误信息"
+              },
+              "type": {
+                "type": "string",
+                "description": "错误类型"
+              },
+              "param": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "相关参数"
+              },
+              "code": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "错误代码"
+              }
+            },
+            "x-apifox-orders": [
+              "message",
+              "type",
+              "param",
+              "code"
+            ]
+          }
+        },
+        "x-apifox-orders": [
+          "error"
+        ]
       }
     }
   },
@@ -26,7 +262,7 @@
           "视频（Videos）"
         ],
         "summary": "创建视频生成任务",
-        "description": "提交视频生成任务，支持文生视频和图生视频。\n\n返回任务 ID，可通过 GET 接口查询任务状态。\n",
+        "description": "提交视频生成任务，支持文生视频和图生视频。返回公开任务 ID，可通过 GET /v1/video/generations/{task_id} 查询任务状态。",
         "operationId": "createvideogeneration",
         "parameters": [],
         "requestBody": {
@@ -34,108 +270,40 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "description": "视频生成请求",
-                "properties": {
-                  "model": {
-                    "type": "string",
-                    "description": "模型/风格 ID",
-                    "examples": [
-                      "kling-v1"
-                    ]
-                  },
-                  "prompt": {
-                    "type": "string",
-                    "description": "文本描述提示词",
-                    "examples": [
-                      "宇航员站起身走了"
-                    ]
-                  },
-                  "image": {
-                    "type": "string",
-                    "description": "图片输入 (URL 或 Base64)",
-                    "examples": [
-                      "https://example.com/image.jpg"
-                    ]
-                  },
-                  "duration": {
-                    "type": "number",
-                    "description": "视频时长（秒）",
-                    "examples": [
-                      5
-                    ]
-                  },
-                  "width": {
-                    "type": "integer",
-                    "description": "视频宽度",
-                    "examples": [
-                      1280
-                    ]
-                  },
-                  "height": {
-                    "type": "integer",
-                    "description": "视频高度",
-                    "examples": [
-                      720
-                    ]
-                  },
-                  "fps": {
-                    "type": "integer",
-                    "description": "视频帧率",
-                    "examples": [
-                      30
-                    ]
-                  },
-                  "seed": {
-                    "type": "integer",
-                    "description": "随机种子",
-                    "examples": [
-                      20231234
-                    ]
-                  },
-                  "n": {
-                    "type": "integer",
-                    "description": "生成视频数量",
-                    "examples": [
-                      1
-                    ]
-                  },
-                  "response_format": {
-                    "type": "string",
-                    "description": "响应格式",
-                    "examples": [
-                      "url"
-                    ]
-                  },
-                  "user": {
-                    "type": "string",
-                    "description": "用户标识",
-                    "examples": [
-                      "user-1234"
-                    ]
-                  },
-                  "metadata": {
-                    "type": "object",
-                    "description": "扩展参数 (如 negative_prompt, style, quality_level 等)",
-                    "additionalProperties": true,
-                    "properties": {},
-                    "x-apifox-orders": []
+                "$ref": "#/components/schemas/VideoGenerationRequest"
+              },
+              "examples": {
+                "text_to_video": {
+                  "summary": "文生视频",
+                  "value": {
+                    "model": "veo-3.1-fast-generate-001",
+                    "prompt": "A cinematic 4-second video of a cute cat walking slowly on a sunny balcony.",
+                    "duration": 4,
+                    "size": "720p",
+                    "metadata": {
+                      "parameters": {
+                        "aspectRatio": "16:9",
+                        "generateAudio": true
+                      }
+                    }
                   }
                 },
-                "x-apifox-orders": [
-                  "model",
-                  "prompt",
-                  "image",
-                  "duration",
-                  "width",
-                  "height",
-                  "fps",
-                  "seed",
-                  "n",
-                  "response_format",
-                  "user",
-                  "metadata"
-                ]
+                "image_to_video": {
+                  "summary": "图生视频",
+                  "value": {
+                    "model": "veo-3.1-fast-generate-001",
+                    "prompt": "Animate this image with natural camera movement.",
+                    "image": "data:image/png;base64,{base64}",
+                    "duration": 4,
+                    "size": "720p",
+                    "metadata": {
+                      "parameters": {
+                        "aspectRatio": "16:9",
+                        "generateAudio": true
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -151,28 +319,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "description": "视频生成任务提交响应",
-                  "properties": {
-                    "task_id": {
-                      "type": "string",
-                      "description": "任务 ID",
-                      "examples": [
-                        "abcd1234efgh"
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "description": "任务状态",
-                      "examples": [
-                        "queued"
-                      ]
+                  "$ref": "#/components/schemas/OpenAIVideo"
+                },
+                "examples": {
+                  "queued": {
+                    "summary": "任务已创建",
+                    "value": {
+                      "id": "task_abc123",
+                      "task_id": "task_abc123",
+                      "object": "video",
+                      "model": "veo-3.1-fast-generate-001",
+                      "status": "queued",
+                      "progress": 0,
+                      "created_at": 1779781958
                     }
-                  },
-                  "x-apifox-orders": [
-                    "task_id",
-                    "status"
-                  ]
+                  }
                 }
               }
             }
@@ -182,45 +343,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "description": "错误信息"
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "错误类型"
-                        },
-                        "param": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "相关参数"
-                        },
-                        "code": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "错误代码"
-                        }
-                      },
-                      "x-apifox-orders": [
-                        "message",
-                        "type",
-                        "param",
-                        "code"
-                      ]
-                    }
-                  },
-                  "x-apifox-orders": [
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/OpenAIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenAIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenAIError"
                 }
               }
             }
