@@ -161,6 +161,10 @@
             "description": "任务属性，例如原始模型、上游模型、输入快照等",
             "additionalProperties": true
           },
+          "username": {
+            "type": "string",
+            "description": "提交任务的用户名（带 omitempty，部分场景才返回）"
+          },
           "data": {
             "type": [
               "object",
@@ -190,6 +194,7 @@
           "finish_time",
           "progress",
           "properties",
+          "username",
           "data"
         ]
       },

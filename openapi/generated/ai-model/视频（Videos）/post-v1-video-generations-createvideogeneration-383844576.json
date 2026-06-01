@@ -3,7 +3,7 @@
   "info": {
     "title": "创建视频生成任务",
     "version": "1.0.0",
-    "description": "提交视频生成任务，支持文生视频和图生视频。该接口使用 NewAPI 通用视频任务格式，返回公开任务 ID，可通过 GET /v1/video/generations/{task_id} 查询任务状态。"
+    "description": "提交视频生成任务，支持文生视频、图生视频（含首尾帧生视频）。该接口使用通用视频任务格式，返回公开任务 ID，可通过 GET /v1/video/generations/{task_id} 查询任务状态。\n\n通用参数为 model、prompt、image、images、duration、size、metadata。不同模型对各参数的支持范围不同，详见各字段说明。未在通用参数中列出的模型原生可选参数请放入 metadata 传入。"
   },
   "tags": [
     {
@@ -21,51 +21,68 @@
     "schemas": {
       "VideoGenerationRequest": {
         "type": "object",
-        "description": "视频生成请求。未列出的厂商扩展参数建议放入 metadata。",
+        "required": [
+          "model",
+          "prompt"
+        ],
+        "description": "视频生成请求。\n\n任务类型判定：是否传入图片决定任务类型——不传图片为文生视频；传 1 张图片为图生视频；传 2 张图片为首尾帧生视频（第一张为首帧、第二张为尾帧，仅部分模型支持）。\n\n未列出的模型原生可选参数请放入 metadata 传入。",
         "properties": {
           "model": {
             "type": "string",
-            "description": "模型/风格 ID",
+            "description": "模型 ID。支持的模型：\n- 通义万相：wan2.6-t2v（文生视频）、wan2.6-i2v（图生视频）\n- 海螺：MiniMax-Hailuo-02、MiniMax-Hailuo-2.3\n- 可灵：kling-v1-6、kling-v2-1、kling-v2-5-turbo、kling-v2-6、kling-v3\n- Veo：veo-3.1-generate-001、veo-3.1-fast-generate-001",
             "examples": [
               "veo-3.1-fast-generate-001"
             ]
           },
           "prompt": {
             "type": "string",
-            "description": "文本描述提示词",
+            "description": "文本描述提示词。文生视频必填；图生视频也建议提供以描述画面运动。",
             "examples": [
               "A cinematic 4-second video of a cute cat walking slowly on a sunny balcony."
             ]
           },
           "image": {
             "type": "string",
-            "description": "图片输入，支持 URL、Base64 或 data URL。传入该字段时通常按图生视频处理。",
+            "description": "单张输入图片，作为图生视频的首帧。\n\n**支持的模型**：通义万相、海螺、可灵、Veo 系列均支持图生视频。\n\n**取值格式**：\n- 通义万相、海螺、可灵：图片 URL 或 base64 编码字符串。\n- Veo 系列：仅支持 base64 或 data URL（如 `data:image/png;base64,{base64}`），不支持 http(s) URL。",
             "examples": [
-              "data:image/png;base64,{base64}"
+              "https://example.com/first_frame.png"
+            ]
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "多张输入图片数组，用于首尾帧生视频（第一张为首帧、第二张为尾帧，最多 2 张）。\n\n**支持的模型**：\n- 海螺、Veo 系列：支持首尾帧生视频。\n- 通义万相：当前不支持首尾帧生视频，图生视频请使用 image 传单张首帧。\n- 可灵：不通过 images 传图，图生视频用 image 传首帧、尾帧通过 metadata 的 image_to_video.image_tail 传入。\n\n**取值格式**（同 image 字段）：\n- 海螺：图片 URL 或 base64 编码字符串。\n- Veo 系列：仅支持 base64 或 data URL（如 `data:image/png;base64,{base64}`），不支持 http(s) URL。",
+            "examples": [
+              [
+                "https://example.com/first_frame.png",
+                "https://example.com/last_frame.png"
+              ]
             ]
           },
           "duration": {
-            "type": "number",
-            "description": "视频时长，单位秒",
+            "type": "integer",
+            "description": "视频时长，单位秒。各模型支持范围：\n\n- **通义万相（wan2.6-t2v、wan2.6-i2v）**：默认 5 秒。\n- **海螺（MiniMax-Hailuo-02、MiniMax-Hailuo-2.3）**：默认 6 秒，可选 6 或 10 秒（768P 支持 10 秒，1080P 仅支持 6 秒）。\n- **可灵（kling 系列）**：仅支持 5 秒或 10 秒。\n- **Veo（veo-3.1 系列）**：默认 8 秒。\n\n不传时使用各模型默认值。",
             "examples": [
-              4
+              5
             ]
           },
           "size": {
             "type": "string",
-            "description": "视频尺寸或分辨率。不同渠道支持的取值可能不同，例如 720p、1080p、4k、1280x720。",
+            "description": "视频尺寸或分辨率档位，不同模型写法不同：\n\n- **通义万相 - 文生视频（wan2.6-t2v）**：使用像素尺寸，格式为 `宽*高`，例如 `1920*1080`、`1280*720`、`832*480`。\n- **通义万相 - 图生视频（wan2.6-i2v）**：使用分辨率档位 720P、1080P，或像素尺寸如 `1080*1920`；默认 1080P。\n- **海螺 MiniMax-Hailuo-02**：支持 512P、768P、1080P；**MiniMax-Hailuo-2.3**：支持 768P、1080P。\n- **可灵（kling 系列）**：支持 720P、1080P、2K、4K，默认 720P。\n- **Veo（veo-3.1 系列）**：支持 720p、1080p、4k，默认 720p。\n\n不传时使用各模型默认分辨率。",
             "examples": [
               "720p"
             ]
           },
           "metadata": {
             "type": "object",
-            "description": "扩展参数，会由对应渠道适配器读取或透传。可用于传递厂商原生参数，例如 parameters、instances、aspectRatio、generateAudio 等。",
+            "description": "扩展参数对象，用于传入各模型的原生可选参数。各模型支持的字段及传入格式如下。\n\n### 通义万相（wan2.6-t2v、wan2.6-i2v）\n按阿里官方的嵌套结构传入，参数分别归属 input 与 parameters 两个对象：\n```json\n{\n  \"input\": {\n    \"negative_prompt\": \"模糊, 低质量\"\n  },\n  \"parameters\": {\n    \"prompt_extend\": true,\n    \"watermark\": false,\n    \"seed\": 12345,\n    \"audio\": true\n  }\n}\n```\n- `input.negative_prompt`：反向提示词，描述不希望出现的内容。\n- `parameters.prompt_extend`：是否开启提示词智能改写，默认开启。\n- `parameters.watermark`：是否添加水印，默认关闭。\n- `parameters.seed`：随机种子，相同种子可复现结果。\n- `parameters.audio`：是否生成音频。\n\n注意：不要在 metadata 中传入 model 字段。\n\n### 海螺（MiniMax-Hailuo-02、MiniMax-Hailuo-2.3）\n直接作为 metadata 的顶层字段传入：\n```json\n{\n  \"prompt_optimizer\": true,\n  \"fast_pretreatment\": true,\n  \"aigc_watermark\": false,\n  \"callback_url\": \"https://your.domain/callback\"\n}\n```\n- `prompt_optimizer`：是否开启提示词优化。\n- `fast_pretreatment`：是否开启快速预处理。\n- `aigc_watermark`：是否添加 AIGC 水印。\n- `callback_url`：任务状态变化时的回调地址。\n\n### 可灵（kling-v1-6、kling-v2-1、kling-v2-5-turbo、kling-v2-6、kling-v3）\n直接作为 metadata 的顶层字段传入：\n```json\n{\n  \"kling_type\": \"image_to_video\",\n  \"negative_prompt\": \"模糊\",\n  \"aspect_ratio\": \"16:9\",\n  \"sound_enable\": false,\n  \"image_to_video\": {\n    \"image_tail\": \"https://example.com/last_frame.png\"\n  }\n}\n```\n- `kling_type`：生成类型，可选 `text_to_video`（文生视频）或 `image_to_video`（图生视频）；图生视频需设为 `image_to_video`。\n- `negative_prompt`：反向提示词。\n- `aspect_ratio`：视频宽高比，如 16:9、9:16、1:1。\n- `sound_enable`：是否生成声音。\n- `image_to_video.image_tail`：尾帧图片，用于首尾帧生视频。\n\n### Veo（veo-3.1-generate-001、veo-3.1-fast-generate-001）\n在 metadata 的 parameters 对象中传入：\n```json\n{\n  \"parameters\": {\n    \"negativePrompt\": \"blurry, low quality\",\n    \"aspectRatio\": \"16:9\",\n    \"seed\": 12345,\n    \"generateAudio\": true,\n    \"personGeneration\": \"allow_all\",\n    \"storageUri\": \"\",\n    \"compressionQuality\": \"optimized\",\n    \"resizeMode\": \"\"\n  }\n}\n```\n- `negativePrompt`：反向提示词。\n- `aspectRatio`：视频宽高比，如 16:9、9:16。\n- `seed`：随机种子。\n- `generateAudio`：是否生成音频。\n- `personGeneration`：人物生成策略。\n- `storageUri`：结果存储地址。\n- `compressionQuality`：压缩质量。\n- `resizeMode`：缩放模式。",
             "additionalProperties": true,
             "examples": [
               {
                 "parameters": {
-                  "aspectRatio": "16:9",
+                  "negativePrompt": "blurry, low quality",
                   "generateAudio": true
                 }
               }
@@ -76,6 +93,7 @@
           "model",
           "prompt",
           "image",
+          "images",
           "duration",
           "size",
           "metadata"
@@ -83,7 +101,7 @@
       },
       "OpenAIVideo": {
         "type": "object",
-        "description": "视频任务提交响应，对应 NewAPI 源码中的 dto.OpenAIVideo。创建任务成功时一般返回 queued 状态；带 omitempty 的字段只有在对应渠道或任务阶段存在值时才会出现。",
+        "description": "视频任务提交响应。创建任务成功时一般返回 queued 状态；带 omitempty 的字段只有在对应任务阶段存在值时才会出现。",
         "required": [
           "id",
           "object",
@@ -102,7 +120,7 @@
           },
           "task_id": {
             "type": "string",
-            "description": "兼容旧接口的公开任务 ID。当前多数视频适配器会同时返回 id 和 task_id。",
+            "description": "兼容旧接口的公开任务 ID。当前多数视频任务会同时返回 id 和 task_id。",
             "examples": [
               "task_abc123"
             ]
@@ -157,19 +175,19 @@
           },
           "expires_at": {
             "type": "integer",
-            "description": "资源过期时间，Unix 时间戳。当前仅部分 OpenAI Video/Sora 格式任务可能返回。"
+            "description": "资源过期时间，Unix 时间戳。仅部分模型的任务可能返回。"
           },
           "seconds": {
             "type": "string",
-            "description": "视频时长。当前仅部分 OpenAI Video/Sora 格式任务可能返回。"
+            "description": "视频时长。仅部分模型的任务可能返回。"
           },
           "size": {
             "type": "string",
-            "description": "视频尺寸或分辨率。当前仅部分 OpenAI Video/Sora 格式任务可能返回。"
+            "description": "视频尺寸或分辨率。仅部分模型的任务可能返回。"
           },
           "remixed_from_video_id": {
             "type": "string",
-            "description": "Remix 来源视频 ID。当前仅 Remix 类任务可能返回。"
+            "description": "Remix 来源视频 ID。仅 Remix 类任务可能返回。"
           },
           "error": {
             "type": "object",
@@ -262,7 +280,7 @@
           "视频（Videos）"
         ],
         "summary": "创建视频生成任务",
-        "description": "提交视频生成任务，支持文生视频和图生视频。返回公开任务 ID，可通过 GET /v1/video/generations/{task_id} 查询任务状态。",
+        "description": "提交视频生成任务，支持文生视频、图生视频和首尾帧生视频。返回公开任务 ID，可通过 GET /v1/video/generations/{task_id} 查询任务状态。",
         "operationId": "createvideogeneration",
         "parameters": [],
         "requestBody": {
@@ -273,35 +291,70 @@
                 "$ref": "#/components/schemas/VideoGenerationRequest"
               },
               "examples": {
-                "text_to_video": {
-                  "summary": "文生视频",
+                "wan_text_to_video": {
+                  "summary": "通义万相 - 文生视频",
                   "value": {
-                    "model": "veo-3.1-fast-generate-001",
-                    "prompt": "A cinematic 4-second video of a cute cat walking slowly on a sunny balcony.",
-                    "duration": 4,
-                    "size": "720p",
+                    "model": "wan2.6-t2v",
+                    "prompt": "一只小猫在阳光下的阳台上缓慢行走，电影级光影"
+                  }
+                },
+                "wan_image_to_video": {
+                  "summary": "通义万相 - 图生视频",
+                  "value": {
+                    "model": "wan2.6-i2v",
+                    "prompt": "镜头缓缓推进，画面自然运动",
+                    "image": "https://example.com/first_frame.png"
+                  }
+                },
+                "hailuo_text_to_video": {
+                  "summary": "海螺 - 文生视频",
+                  "value": {
+                    "model": "MiniMax-Hailuo-02",
+                    "prompt": "城市夜景，霓虹灯光，赛博朋克风格，镜头缓慢推进"
+                  }
+                },
+                "hailuo_start_end_to_video": {
+                  "summary": "海螺 - 首尾帧生视频（images 传两张）",
+                  "value": {
+                    "model": "MiniMax-Hailuo-02",
+                    "prompt": "画面从首帧平滑过渡到尾帧",
+                    "images": [
+                      "https://example.com/first_frame.png",
+                      "https://example.com/last_frame.png"
+                    ]
+                  }
+                },
+                "kling_text_to_video": {
+                  "summary": "可灵 - 文生视频",
+                  "value": {
+                    "model": "kling-v2-1",
+                    "prompt": "宇航员站在月球表面，缓慢抬头看向远方，电影级光影"
+                  }
+                },
+                "kling_image_to_video": {
+                  "summary": "可灵 - 图生视频（image 传首帧，metadata 设置 kling_type）",
+                  "value": {
+                    "model": "kling-v2-1",
+                    "prompt": "镜头缓缓上移",
+                    "image": "https://example.com/first_frame.png",
                     "metadata": {
-                      "parameters": {
-                        "aspectRatio": "16:9",
-                        "generateAudio": true
-                      }
+                      "kling_type": "image_to_video"
                     }
                   }
                 },
-                "image_to_video": {
-                  "summary": "图生视频",
+                "veo_text_to_video": {
+                  "summary": "Veo - 文生视频",
                   "value": {
                     "model": "veo-3.1-fast-generate-001",
+                    "prompt": "A cinematic shot of a cute cat walking on a sunny balcony."
+                  }
+                },
+                "veo_image_to_video": {
+                  "summary": "Veo - 图生视频（image 使用 base64 / data URL）",
+                  "value": {
+                    "model": "veo-3.1-generate-001",
                     "prompt": "Animate this image with natural camera movement.",
-                    "image": "data:image/png;base64,{base64}",
-                    "duration": 4,
-                    "size": "720p",
-                    "metadata": {
-                      "parameters": {
-                        "aspectRatio": "16:9",
-                        "generateAudio": true
-                      }
-                    }
+                    "image": "data:image/png;base64,{base64}"
                   }
                 }
               }
