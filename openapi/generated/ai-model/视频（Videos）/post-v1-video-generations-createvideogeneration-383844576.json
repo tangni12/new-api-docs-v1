@@ -29,7 +29,7 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "模型 ID。支持的模型：\n- 通义万相：wan2.6-t2v（文生视频）、wan2.6-i2v（图生视频）\n- 海螺：MiniMax-Hailuo-02、MiniMax-Hailuo-2.3\n- 可灵：kling-v1-6、kling-v2-1、kling-v2-5-turbo、kling-v2-6、kling-v3\n- Veo：veo-3.1-generate-001、veo-3.1-fast-generate-001",
+            "description": "模型 ID。支持的模型：\n- 通义万相：wan2.6-t2v（文生视频）、wan2.6-i2v（图生视频）\n- 海螺：MiniMax-Hailuo-02、MiniMax-Hailuo-2.3\n- 可灵：kling-v1-6、kling-v2-1、kling-v2-5-turbo、kling-v2-6、kling-v3\n- Veo：veo-3.1-generate-001、veo-3.1-fast-generate-001\n- Vidu：viduq3-pro、viduq3-turbo、viduq2、viduq2-pro、viduq2-turbo、viduq2-pro-fast",
             "examples": [
               "veo-3.1-fast-generate-001"
             ]
@@ -43,7 +43,7 @@
           },
           "image": {
             "type": "string",
-            "description": "单张输入图片，作为图生视频的首帧。\n\n**支持的模型**：通义万相、海螺、可灵、Veo 系列均支持图生视频。\n\n**取值格式**：\n- 通义万相、海螺、可灵：图片 URL 或 base64 编码字符串。\n- Veo 系列：仅支持 base64 或 data URL（如 `data:image/png;base64,{base64}`），不支持 http(s) URL。",
+            "description": "单张输入图片，作为图生视频的首帧。\n\n**支持的模型**：通义万相、海螺、可灵、Veo、Vidu 系列均支持图生视频（Vidu 中 viduq3-pro、viduq3-turbo、viduq2-pro、viduq2-turbo、viduq2-pro-fast 支持图生视频，viduq2 仅支持文生视频）。\n\n**取值格式**：\n- 通义万相、海螺、可灵、Vidu：图片 URL 或 base64 编码字符串。\n- Veo 系列：仅支持 base64 或 data URL（如 `data:image/png;base64,{base64}`），不支持 http(s) URL。",
             "examples": [
               "https://example.com/first_frame.png"
             ]
@@ -53,7 +53,7 @@
             "items": {
               "type": "string"
             },
-            "description": "多张输入图片数组，用于首尾帧生视频（第一张为首帧、第二张为尾帧，最多 2 张）。\n\n**支持的模型**：\n- 海螺、Veo 系列：支持首尾帧生视频。\n- 通义万相：当前不支持首尾帧生视频，图生视频请使用 image 传单张首帧。\n- 可灵：不通过 images 传图，图生视频用 image 传首帧、尾帧通过 metadata 的 image_to_video.image_tail 传入。\n\n**取值格式**（同 image 字段）：\n- 海螺：图片 URL 或 base64 编码字符串。\n- Veo 系列：仅支持 base64 或 data URL（如 `data:image/png;base64,{base64}`），不支持 http(s) URL。",
+            "description": "多张输入图片数组，用于首尾帧生视频（第一张为首帧、第二张为尾帧，最多 2 张）。\n\n**支持的模型**：\n- 海螺、Veo 系列：支持首尾帧生视频。\n- Vidu：viduq3-pro、viduq3-turbo、viduq2-pro、viduq2-turbo 支持首尾帧生视频（需正好 2 张）。\n- 通义万相：当前不支持首尾帧生视频，图生视频请使用 image 传单张首帧。\n- 可灵：不通过 images 传图，图生视频用 image 传首帧、尾帧通过 metadata 的 image_to_video.image_tail 传入。\n\n**取值格式**（同 image 字段）：\n- 海螺、Vidu：图片 URL 或 base64 编码字符串。\n- Veo 系列：仅支持 base64 或 data URL（如 `data:image/png;base64,{base64}`），不支持 http(s) URL。",
             "examples": [
               [
                 "https://example.com/first_frame.png",
@@ -63,21 +63,21 @@
           },
           "duration": {
             "type": "integer",
-            "description": "视频时长，单位秒。各模型支持范围：\n\n- **通义万相（wan2.6-t2v、wan2.6-i2v）**：默认 5 秒。\n- **海螺（MiniMax-Hailuo-02、MiniMax-Hailuo-2.3）**：默认 6 秒，可选 6 或 10 秒（768P 支持 10 秒，1080P 仅支持 6 秒）。\n- **可灵（kling 系列）**：仅支持 5 秒或 10 秒。\n- **Veo（veo-3.1 系列）**：默认 8 秒。\n\n不传时使用各模型默认值。",
+            "description": "视频时长，单位秒。各模型支持范围：\n\n- **通义万相（wan2.6-t2v、wan2.6-i2v）**：默认 5 秒。\n- **海螺（MiniMax-Hailuo-02、MiniMax-Hailuo-2.3）**：默认 6 秒，可选 6 或 10 秒（768P 支持 10 秒，1080P 仅支持 6 秒）。\n- **可灵（kling 系列）**：仅支持 5 秒或 10 秒。\n- **Veo（veo-3.1 系列）**：默认 8 秒。\n- **Vidu（viduq 系列）**：默认 5 秒。\n\n不传时使用各模型默认值。",
             "examples": [
               5
             ]
           },
           "size": {
             "type": "string",
-            "description": "视频尺寸或分辨率档位，不同模型写法不同：\n\n- **通义万相 - 文生视频（wan2.6-t2v）**：使用像素尺寸，格式为 `宽*高`，例如 `1920*1080`、`1280*720`、`832*480`。\n- **通义万相 - 图生视频（wan2.6-i2v）**：使用分辨率档位 720P、1080P，或像素尺寸如 `1080*1920`；默认 1080P。\n- **海螺 MiniMax-Hailuo-02**：支持 512P、768P、1080P；**MiniMax-Hailuo-2.3**：支持 768P、1080P。\n- **可灵（kling 系列）**：支持 720P、1080P、2K、4K，默认 720P。\n- **Veo（veo-3.1 系列）**：支持 720p、1080p、4k，默认 720p。\n\n不传时使用各模型默认分辨率。",
+            "description": "视频尺寸或分辨率档位，不同模型写法不同：\n\n- **通义万相 - 文生视频（wan2.6-t2v）**：使用像素尺寸，格式为 `宽*高`，例如 `1920*1080`、`1280*720`、`832*480`。\n- **通义万相 - 图生视频（wan2.6-i2v）**：使用分辨率档位 720P、1080P，或像素尺寸如 `1080*1920`；默认 1080P。\n- **海螺 MiniMax-Hailuo-02**：支持 512P、768P、1080P；**MiniMax-Hailuo-2.3**：支持 768P、1080P。\n- **可灵（kling 系列）**：支持 720P、1080P、2K、4K，默认 720P。\n- **Veo（veo-3.1 系列）**：支持 720p、1080p、4k，默认 720p。\n- **Vidu（viduq 系列）**：支持 540P、720P、1080P，默认 720P（viduq2-pro-fast 仅支持 720P、1080P）。\n\n不传时使用各模型默认分辨率。",
             "examples": [
               "720p"
             ]
           },
           "metadata": {
             "type": "object",
-            "description": "扩展参数对象，用于传入各模型的原生可选参数。各模型支持的字段及传入格式如下。\n\n### 通义万相（wan2.6-t2v、wan2.6-i2v）\n按阿里官方的嵌套结构传入，参数分别归属 input 与 parameters 两个对象：\n```json\n{\n  \"input\": {\n    \"negative_prompt\": \"模糊, 低质量\"\n  },\n  \"parameters\": {\n    \"prompt_extend\": true,\n    \"watermark\": false,\n    \"seed\": 12345,\n    \"audio\": true\n  }\n}\n```\n- `input.negative_prompt`：反向提示词，描述不希望出现的内容。\n- `parameters.prompt_extend`：是否开启提示词智能改写，默认开启。\n- `parameters.watermark`：是否添加水印，默认关闭。\n- `parameters.seed`：随机种子，相同种子可复现结果。\n- `parameters.audio`：是否生成音频。\n\n注意：不要在 metadata 中传入 model 字段。\n\n### 海螺（MiniMax-Hailuo-02、MiniMax-Hailuo-2.3）\n直接作为 metadata 的顶层字段传入：\n```json\n{\n  \"prompt_optimizer\": true,\n  \"fast_pretreatment\": true,\n  \"aigc_watermark\": false,\n  \"callback_url\": \"https://your.domain/callback\"\n}\n```\n- `prompt_optimizer`：是否开启提示词优化。\n- `fast_pretreatment`：是否开启快速预处理。\n- `aigc_watermark`：是否添加 AIGC 水印。\n- `callback_url`：任务状态变化时的回调地址。\n\n### 可灵（kling-v1-6、kling-v2-1、kling-v2-5-turbo、kling-v2-6、kling-v3）\n直接作为 metadata 的顶层字段传入：\n```json\n{\n  \"kling_type\": \"image_to_video\",\n  \"negative_prompt\": \"模糊\",\n  \"aspect_ratio\": \"16:9\",\n  \"sound_enable\": false,\n  \"image_to_video\": {\n    \"image_tail\": \"https://example.com/last_frame.png\"\n  }\n}\n```\n- `kling_type`：生成类型，可选 `text_to_video`（文生视频）或 `image_to_video`（图生视频）；图生视频需设为 `image_to_video`。\n- `negative_prompt`：反向提示词。\n- `aspect_ratio`：视频宽高比，如 16:9、9:16、1:1。\n- `sound_enable`：是否生成声音。\n- `image_to_video.image_tail`：尾帧图片，用于首尾帧生视频。\n\n### Veo（veo-3.1-generate-001、veo-3.1-fast-generate-001）\n在 metadata 的 parameters 对象中传入：\n```json\n{\n  \"parameters\": {\n    \"negativePrompt\": \"blurry, low quality\",\n    \"aspectRatio\": \"16:9\",\n    \"seed\": 12345,\n    \"generateAudio\": true,\n    \"personGeneration\": \"allow_all\",\n    \"storageUri\": \"\",\n    \"compressionQuality\": \"optimized\",\n    \"resizeMode\": \"\"\n  }\n}\n```\n- `negativePrompt`：反向提示词。\n- `aspectRatio`：视频宽高比，如 16:9、9:16。\n- `seed`：随机种子。\n- `generateAudio`：是否生成音频。\n- `personGeneration`：人物生成策略。\n- `storageUri`：结果存储地址。\n- `compressionQuality`：压缩质量。\n- `resizeMode`：缩放模式。",
+            "description": "扩展参数对象，用于传入各模型的原生可选参数。各模型支持的字段及传入格式如下。\n\n### 通义万相（wan2.6-t2v、wan2.6-i2v）\n按阿里官方的嵌套结构传入，参数分别归属 input 与 parameters 两个对象：\n```json\n{\n  \"input\": {\n    \"negative_prompt\": \"模糊, 低质量\"\n  },\n  \"parameters\": {\n    \"prompt_extend\": true,\n    \"watermark\": false,\n    \"seed\": 12345,\n    \"audio\": true\n  }\n}\n```\n- `input.negative_prompt`：反向提示词，描述不希望出现的内容。\n- `parameters.prompt_extend`：是否开启提示词智能改写，默认开启。\n- `parameters.watermark`：是否添加水印，默认关闭。\n- `parameters.seed`：随机种子，相同种子可复现结果。\n- `parameters.audio`：是否生成音频。\n\n注意：不要在 metadata 中传入 model 字段。\n\n### 海螺（MiniMax-Hailuo-02、MiniMax-Hailuo-2.3）\n直接作为 metadata 的顶层字段传入：\n```json\n{\n  \"prompt_optimizer\": true,\n  \"fast_pretreatment\": true,\n  \"aigc_watermark\": false,\n  \"callback_url\": \"https://your.domain/callback\"\n}\n```\n- `prompt_optimizer`：是否开启提示词优化。\n- `fast_pretreatment`：是否开启快速预处理。\n- `aigc_watermark`：是否添加 AIGC 水印。\n- `callback_url`：任务状态变化时的回调地址。\n\n### 可灵（kling-v1-6、kling-v2-1、kling-v2-5-turbo、kling-v2-6、kling-v3）\n直接作为 metadata 的顶层字段传入：\n```json\n{\n  \"kling_type\": \"image_to_video\",\n  \"negative_prompt\": \"模糊\",\n  \"aspect_ratio\": \"16:9\",\n  \"sound_enable\": false,\n  \"image_to_video\": {\n    \"image_tail\": \"https://example.com/last_frame.png\"\n  }\n}\n```\n- `kling_type`：生成类型，可选 `text_to_video`（文生视频）或 `image_to_video`（图生视频）；图生视频需设为 `image_to_video`。\n- `negative_prompt`：反向提示词。\n- `aspect_ratio`：视频宽高比，如 16:9、9:16、1:1。\n- `sound_enable`：是否生成声音。\n- `image_to_video.image_tail`：尾帧图片，用于首尾帧生视频。\n\n### Veo（veo-3.1-generate-001、veo-3.1-fast-generate-001）\n在 metadata 的 parameters 对象中传入：\n```json\n{\n  \"parameters\": {\n    \"negativePrompt\": \"blurry, low quality\",\n    \"aspectRatio\": \"16:9\",\n    \"seed\": 12345,\n    \"generateAudio\": true,\n    \"personGeneration\": \"allow_all\",\n    \"storageUri\": \"\",\n    \"compressionQuality\": \"optimized\",\n    \"resizeMode\": \"\"\n  }\n}\n```\n- `negativePrompt`：反向提示词。\n- `aspectRatio`：视频宽高比，如 16:9、9:16。\n- `seed`：随机种子。\n- `generateAudio`：是否生成音频。\n- `personGeneration`：人物生成策略。\n- `storageUri`：结果存储地址。\n- `compressionQuality`：压缩质量。\n- `resizeMode`：缩放模式。\n\n### Vidu（viduq3-pro、viduq3-turbo、viduq2、viduq2-pro、viduq2-turbo、viduq2-pro-fast）\n直接作为 metadata 的顶层字段传入：\n```json\n{\n  \"seed\": 12345,\n  \"audio\": true,\n  \"watermark\": false\n}\n```\n- `seed`：随机种子，不传或为 0 时使用随机数，相同种子可复现结果。\n- `audio`：是否使用音视频直出能力（输出带声音的视频）。\n- `watermark`：是否为生成的视频添加水印。",
             "additionalProperties": true,
             "examples": [
               {
@@ -355,6 +355,32 @@
                     "model": "veo-3.1-generate-001",
                     "prompt": "Animate this image with natural camera movement.",
                     "image": "data:image/png;base64,{base64}"
+                  }
+                },
+                "vidu_text_to_video": {
+                  "summary": "Vidu - 文生视频",
+                  "value": {
+                    "model": "viduq3-pro",
+                    "prompt": "宇航员站在月球表面，缓慢抬头看向远方，电影级光影"
+                  }
+                },
+                "vidu_image_to_video": {
+                  "summary": "Vidu - 图生视频",
+                  "value": {
+                    "model": "viduq3-pro",
+                    "prompt": "镜头从海龟下方缓缓上移，海龟悠然游动",
+                    "image": "https://help-static-aliyun-doc.aliyuncs.com/file-manage-files/zh-CN/20260121/zlpocv/wan-i2v-haigui.webp"
+                  }
+                },
+                "vidu_start_end_to_video": {
+                  "summary": "Vidu - 首尾帧生视频",
+                  "value": {
+                    "model": "viduq3-pro",
+                    "prompt": "画面从首帧平滑过渡到尾帧",
+                    "images": [
+                      "https://wanx.alicdn.com/material/20250318/first_frame.png",
+                      "https://wanx.alicdn.com/material/20250318/last_frame.png"
+                    ]
                   }
                 }
               }
