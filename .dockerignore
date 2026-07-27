@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.next
+.source
+node_modules
+runtime
+out
+coverage
+*.log
+Dockerfile
+docker-compose.yml
